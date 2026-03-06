@@ -1,0 +1,18 @@
+# ==========================================
+# CRITICAL SECURITY: DO NOT COMMIT SECRETS
+# ==========================================
+*.db
+*.db-wal
+*.db-shm
+*.xml
+*.json
+*.log
+*.bak
+api_keys.txt
+sonarr/
+radarr/
+prowlarr/
+qbittorrent/
+overseerr/
+jackett/
+flaresolverr/

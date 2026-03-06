@@ -1,0 +1,114 @@
+services:
+  qbittorrent_v2:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent_v2
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Vienna
+      - WEBUI_PORT=8080
+    volumes:
+      - /mnt:/mnt
+      - ./qbittorrent:/config
+      # IMPORTANT: Torrents download to LOCAL disk, avoiding cloud FUSE API locks
+    ports:
+      - 8080:8080
+      - 6881:6881
+      - 6881:6881/udp
+    restart: unless-stopped
+
+  prowlarr_v2:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr_v2
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Vienna
+    volumes:
+      - ./prowlarr:/config
+    ports:
+      - 9696:9696
+    restart: unless-stopped
+
+  radarr_v2:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr_v2
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Vienna
+    volumes:
+      - /mnt:/mnt
+      - ./radarr:/config
+      # Radarr moves completed movies to Internxt
+    ports:
+      - 7878:7878
+    restart: unless-stopped
+
+  sonarr_v2:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr_v2
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Vienna
+    volumes:
+      - /mnt:/mnt
+      - ./sonarr:/config
+      # Sonarr moves completed shows to Internxt
+    ports:
+      - 8989:8989
+    restart: unless-stopped
+
+  flaresolverr_v2:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr_v2
+    environment:
+      - LOG_LEVEL=info
+      - TZ=Europe/Vienna
+    ports:
+      - 8191:8191
+    restart: unless-stopped
+
+  overseerr_v2:
+    image: lscr.io/linuxserver/overseerr:latest
+    container_name: overseerr_v2
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Vienna
+    volumes:
+      - ./overseerr:/app/config
+    ports:
+      - 5055:5055
+    restart: unless-stopped
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    restart: unless-stopped
+
+  gluetun_v2:
+    image: haproxy:alpine
+    container_name: gluetun_v2
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    restart: unless-stopped
+    depends_on:
+      - qbittorrent_v2
+      - prowlarr_v2
+
+  jackett_v2:
+    image: lscr.io/linuxserver/jackett:latest
+    container_name: jackett_v2
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Vienna
+    volumes:
+      - ./jackett:/config
+      - /mnt:/mnt
+    restart: unless-stopped
